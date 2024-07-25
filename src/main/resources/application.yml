@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: Auth-Service
+  datasource:
+    url: jdbc:mysql://localhost:3306/userDB?createDatabaseIfNotExist=true
+    username: root
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+      dialect : org.hibernate.dialect.MySQLDialect
+
+    show-sql: true
+
