@@ -86,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResultState<String> verifyPhoneOTP(String phoneNumber, String otp) {
         try {
+            logger.info(otp);
             Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
             VerificationCheck verificationCheck = VerificationCheck.creator(
                            "VAfb7550c2574d21cc4474b062800a13da")
@@ -93,6 +94,7 @@ public class AuthServiceImpl implements AuthService {
                     .setCode(otp)
                     .create();
             logger.info("SMS verification status : " + verificationCheck.getStatus());
+
             return new ResultState.Success<>("SMS verification "+phoneNumber+ " status : " + verificationCheck.getStatus());
 
         } catch (Exception e) {
