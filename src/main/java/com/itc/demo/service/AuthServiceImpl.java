@@ -10,6 +10,12 @@ import java.util.logging.Logger;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+/*
+
+    public static final String ACCOUNT_SID = "AC5214af5ccdf03f72a16eb2b0068c9f14";
+    public static final String AUTH_TOKEN = "ceabaa3df4c6d9fad6b3ac4017610b5c";
+*/
+
 
     Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
 
