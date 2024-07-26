@@ -3,6 +3,9 @@ package com.itc.demo.service;
 import com.itc.demo.model.UserModel;
 import com.itc.demo.repository.AuthRepo;
 import com.itc.demo.utils.ResultState;
+import com.twilio.Twilio;
+import com.twilio.rest.verify.v2.service.Verification;
+import com.twilio.rest.verify.v2.service.VerificationCheck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,11 +13,9 @@ import java.util.logging.Logger;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-/*
 
-    public static final String ACCOUNT_SID = "AC5214af5ccdf03f72a16eb2b0068c9f14";
-    public static final String AUTH_TOKEN = "ceabaa3df4c6d9fad6b3ac4017610b5c";
-*/
+    public static final String ACCOUNT_SID = "ACec163fd5030fc99bb60963d9a17fc675";
+    public static final String AUTH_TOKEN = "fb060c5d9f94dc05c30d47e060d8c0c7";
 
 
     Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
@@ -66,16 +67,16 @@ public class AuthServiceImpl implements AuthService {
 
         try {
 
-        /*    Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
             Verification verification = Verification.creator(
-                            "VA989e139dc19ecedc828dcc132e2b2c13", // verification sid
+                            "VAfb7550c2574d21cc4474b062800a13da", // verification sid
                             "+91"+phoneNumber, // recipient phone number
                             "sms") //  channel type
                     .create();
             logger.info("SMS sent verification status : " + verification.getStatus());
 
-            return new ResultState.Success<>("SMS to "+phoneNumber+" status : " + verification.getStatus());*/
-            return new ResultState.Error<>("Error while sending OTP to " + phoneNumber + ".");
+            return new ResultState.Success<>("SMS to "+phoneNumber+" verification status : " + verification.getStatus());
+
         } catch (Exception e) {
             logger.severe(e.getMessage());
             return new ResultState.Error<>("Error while sending OTP to " + phoneNumber + ".");
@@ -85,15 +86,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResultState<String> verifyPhoneOTP(String phoneNumber, String otp) {
         try {
-     /*       Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
             VerificationCheck verificationCheck = VerificationCheck.creator(
-                           "VA989e139dc19ecedc828dcc132e2b2c13")
+                           "VAfb7550c2574d21cc4474b062800a13da")
                     .setTo( "+91"+phoneNumber)
                     .setCode(otp)
                     .create();
             logger.info("SMS verification status : " + verificationCheck.getStatus());
-            return new ResultState.Success<>("SMS verification "+phoneNumber+ " status : " + verificationCheck.getStatus());*/
-            return new ResultState.Error<>("Error while sending OTP to " + phoneNumber + ".");
+            return new ResultState.Success<>("SMS verification "+phoneNumber+ " status : " + verificationCheck.getStatus());
+
         } catch (Exception e) {
             logger.severe(e.getMessage());
             return new ResultState.Error<>("Error while verifying OTP to " + phoneNumber + ".");

@@ -5,10 +5,7 @@ import com.itc.demo.utils.ResultState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
 
@@ -28,6 +25,19 @@ public class AuthController {
         } else {
             ResultState.Error<String> error = (ResultState.Error<String>) resultState;
            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error.getMessage());
+        }
+
+    }
+
+    @PostMapping("/verify/{phonenumber}")
+    public ResponseEntity<String> generateOTP(@PathVariable String phonenumber, @RequestBody String otp) {
+        ResultState<String> resultState = authService.verifyPhoneOTP(phonenumber,otp);
+
+        if (resultState instanceof ResultState.Success<String> success) {
+            return ResponseEntity.ok(success.getData());
+        } else {
+            ResultState.Error<String> error = (ResultState.Error<String>) resultState;
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error.getMessage());
         }
 
     }
