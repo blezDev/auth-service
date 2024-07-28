@@ -16,9 +16,9 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/generateotp/{phonenumber}")
-    public ResponseEntity<String> generateOTP(@PathVariable String phonenumber) {
-        ResultState<String> resultState = authService.generateOTPThroughNumber(phonenumber);
+    @PostMapping("/generateotp/{email}")
+    public ResponseEntity<String> generateOTP(@PathVariable String email) {
+        ResultState<String> resultState = authService.generateOTPThroughEmail(email);
 
         if (resultState instanceof ResultState.Success<String> success) {
            return ResponseEntity.ok(success.getData());
@@ -29,9 +29,9 @@ public class AuthController {
 
     }
 
-    @PostMapping("/verify/{phonenumber}")
-    public ResponseEntity<String> generateOTP(@PathVariable String phonenumber, @RequestBody String otp) {
-        ResultState<String> resultState = authService.verifyPhoneOTP(phonenumber,otp);
+    @PostMapping("/verify/{email}")
+    public ResponseEntity<String> generateOTP(@PathVariable String email, @RequestBody String otp) {
+        ResultState<String> resultState = authService.verifyEmailOTP(email,otp);
 
         if (resultState instanceof ResultState.Success<String> success) {
             return ResponseEntity.ok(success.getData());

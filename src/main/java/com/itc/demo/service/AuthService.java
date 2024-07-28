@@ -2,6 +2,7 @@ package com.itc.demo.service;
 
 import com.itc.demo.model.UserModel;
 import com.itc.demo.utils.ResultState;
+import org.springframework.scheduling.annotation.Scheduled;
 
 
 public interface AuthService {
@@ -12,13 +13,16 @@ public interface AuthService {
     public ResultState<String> login(String email, String password);
 
 
-    public ResultState<String> generateOTPThroughNumber(String phoneNumber);
+    public ResultState<String> generateOTPThroughEmail(String email);
 
-    public ResultState<String> verifyPhoneOTP(String phoneNumber, String otp);
+    public ResultState<String> verifyEmailOTP(String email, String otp);
 
 
 
     public ResultState<String> changePassword(String email, String newPassword);
+
+    // Schedule the task to run every minute
+    public void deleteExpiredOTPs();
 
 
 }

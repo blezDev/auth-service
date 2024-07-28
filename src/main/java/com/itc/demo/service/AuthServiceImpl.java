@@ -1,22 +1,41 @@
 package com.itc.demo.service;
 
+import com.itc.demo.model.EmailDetails;
+import com.itc.demo.model.OtpAuth;
 import com.itc.demo.model.UserModel;
 import com.itc.demo.repository.AuthRepo;
+import com.itc.demo.repository.OTPRepo;
 import com.itc.demo.utils.ResultState;
-import com.twilio.Twilio;
-import com.twilio.rest.verify.v2.service.Verification;
-import com.twilio.rest.verify.v2.service.VerificationCheck;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+    /*
 
-    public static final String ACCOUNT_SID = "ACec163fd5030fc99bb60963d9a17fc675";
-    public static final String AUTH_TOKEN = "fb060c5d9f94dc05c30d47e060d8c0c7";
+        public static final String ACCOUNT_SID = "ACec163fd5030fc99bb60963d9a17fc675";
+        public static final String AUTH_TOKEN = "fb060c5d9f94dc05c30d47e060d8c0c7";
 
+    */
+    @Autowired
+    private JavaMailSender javaMailSender;
+
+    @Autowired
+    private OTPRepo otpRepo;
+
+    @Value("${spring.mail.username}")
+    private String sender;
 
     Logger logger = Logger.getLogger(AuthServiceImpl.class.getName());
 
@@ -62,44 +81,76 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    private static final String DIGITS = "0123456789";
+    private static final SecureRandom random = new SecureRandom();
+
+    public static String generateOTP(int length) {
+        StringBuilder otp = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(DIGITS.length());
+            otp.append(DIGITS.charAt(index));
+        }
+        return otp.toString();
+    }
+
     @Override
-    public ResultState<String> generateOTPThroughNumber(String phoneNumber) {
+    public ResultState<String> generateOTPThroughEmail(String email) {
 
         try {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
+            Optional<OtpAuth> otpExist = otpRepo.findByEmailAndExpirationTimeAfter(email, LocalDateTime.now());
+            if (otpExist.isPresent()) {
+                OtpAuth otp = otpExist.get();
+                EmailDetails emailDetail = new EmailDetails(email, "OTP for authentication : " + otp.getOtp(), "OTP VERIFICATION", "");
+                mimeMessageHelper.setFrom(sender);
+                mimeMessageHelper.setTo(email);
+                mimeMessageHelper.setSubject(emailDetail.getSubject());
+                mimeMessageHelper.setText(emailDetail.getMsgBody());
+                javaMailSender.send(mimeMessage);
+                return new ResultState.Success<>("Mail sent Successfully");
 
-            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-            Verification verification = Verification.creator(
-                            "VAfb7550c2574d21cc4474b062800a13da", // verification sid
-                            "+91"+phoneNumber, // recipient phone number
-                            "sms") //  channel type
-                    .create();
-            logger.info("SMS sent verification status : " + verification.getStatus());
+            }
 
-            return new ResultState.Success<>("SMS to "+phoneNumber+" verification status : " + verification.getStatus());
 
+            String otp = generateOTP(6);
+            OtpAuth otpAuth = new OtpAuth(email, otp, LocalDateTime.now().plusMinutes(2));
+            otpRepo.save(otpAuth);
+            EmailDetails emailDetail = new EmailDetails(email, "OTP for authentication : " + otp, "OTP VERIFICATION", "");
+            mimeMessageHelper.setFrom(sender);
+            mimeMessageHelper.setTo(email);
+            mimeMessageHelper.setSubject(emailDetail.getSubject());
+            mimeMessageHelper.setText(emailDetail.getMsgBody());
+            javaMailSender.send(mimeMessage);
+            return new ResultState.Success<>("Mail sent Successfully");
         } catch (Exception e) {
             logger.severe(e.getMessage());
-            return new ResultState.Error<>("Error while sending OTP to " + phoneNumber + ".");
+            return new ResultState.Error<>("Error while sending OTP to " + email + ".");
         }
     }
 
     @Override
-    public ResultState<String> verifyPhoneOTP(String phoneNumber, String otp) {
+    public ResultState<String> verifyEmailOTP(String email, String otp) {
         try {
             logger.info(otp);
-            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-            VerificationCheck verificationCheck = VerificationCheck.creator(
-                           "VAfb7550c2574d21cc4474b062800a13da")
-                    .setTo( "+91"+phoneNumber)
-                    .setCode(otp)
-                    .create();
-            logger.info("SMS verification status : " + verificationCheck.getStatus());
+            Optional<OtpAuth> otpExist = otpRepo.findByEmailAndExpirationTimeAfter(email, LocalDateTime.now());
+            if (otpExist.isPresent()) {
+                OtpAuth otpAuth = otpExist.get();
+                boolean verify = Objects.equals(otpAuth.getOtp(), otp);
+                if (verify) {
+                    otpRepo.delete(otpAuth);
+                    return new ResultState.Success<>("OTP verified.");
+                }else {
+                    return new ResultState.Error<>("Invalid OTP.");
+                }
 
-            return new ResultState.Success<>("SMS verification "+phoneNumber+ " status : " + verificationCheck.getStatus());
+            }else{
+                return new ResultState.Error<>("OTP has been expired.");
+            }
 
         } catch (Exception e) {
             logger.severe(e.getMessage());
-            return new ResultState.Error<>("Error while verifying OTP to " + phoneNumber + ".");
+            return new ResultState.Error<>("Error while verifying OTP to " + email + ".");
         }
     }
 
@@ -117,7 +168,7 @@ public class AuthServiceImpl implements AuthService {
             UserModel savedState = repo.save(user);
             if (savedState == null) {
                 return new ResultState.Error<>("Error while changing password.");
-            }else{
+            } else {
                 return new ResultState.Success<>("Password has been changed.");
             }
         } catch (Exception e) {
@@ -125,5 +176,11 @@ public class AuthServiceImpl implements AuthService {
             return new ResultState.Error<>("Error while creating user.");
         }
 
+    }
+
+    @Scheduled(fixedRate = 60000L)
+    @Override
+    public void deleteExpiredOTPs() {
+        otpRepo.deleteByExpirationTimeBefore(LocalDateTime.now());
     }
 }
