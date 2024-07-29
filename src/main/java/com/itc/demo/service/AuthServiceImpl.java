@@ -179,9 +179,10 @@ public class AuthServiceImpl implements AuthService {
 
     }
 
-    @Scheduled(fixedRate = 60000L)
+    @Scheduled(fixedRate = 900000L)
     @Override
     public void deleteExpiredOTPs() {
+        logger.severe(LocalDateTime.now().getMinute() + "");
         otpRepo.deleteByExpirationTimeBefore(LocalDateTime.now());
     }
 }
