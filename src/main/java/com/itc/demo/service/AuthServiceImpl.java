@@ -99,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
-            Optional<OtpAuth> otpExist = otpRepo.findByEmailAndExpirationTimeAfter(email, LocalDateTime.now());
+            Optional<OtpAuth> otpExist = otpRepo.findByEmail (email);
             if (otpExist.isPresent()) {
                 OtpAuth otp = otpExist.get();
                 EmailDetails emailDetail = new EmailDetails(email, "OTP for authentication : " + otp.getOtp(), "OTP VERIFICATION", "");
@@ -133,7 +133,7 @@ public class AuthServiceImpl implements AuthService {
     public ResultState<String> verifyEmailOTP(String email, String otp) {
         try {
             logger.info(otp);
-            Optional<OtpAuth> otpExist = otpRepo.findByEmailAndExpirationTimeAfter(email, LocalDateTime.now());
+            Optional<OtpAuth> otpExist = otpRepo.findByEmail(email);
             if (otpExist.isPresent()) {
                 OtpAuth otpAuth = otpExist.get();
                 boolean verify = Objects.equals(otpAuth.getOtp(), otp);
@@ -145,7 +145,8 @@ public class AuthServiceImpl implements AuthService {
                 }
 
             }else{
-                return new ResultState.Error<>("OTP has been expired.");
+                logger.severe(false + "");
+                return new ResultState.Error<>("Invalid OTP.");
             }
 
         } catch (Exception e) {

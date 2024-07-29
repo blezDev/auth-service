@@ -14,6 +14,10 @@ import java.util.Optional;
 @Repository
 public interface OTPRepo extends JpaRepository<OtpAuth,String>{
     Optional<OtpAuth> findByEmailAndExpirationTimeAfter(String email, LocalDateTime now);
+    Optional<OtpAuth> findByEmail(String email);
+
+
+
 
     @Modifying
     @Transactional
