@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -32,6 +33,9 @@ public class AuthServiceImpl implements AuthService {
     private JavaMailSender javaMailSender;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private OTPRepo otpRepo;
 
     @Value("${spring.mail.username}")
@@ -48,8 +52,14 @@ public class AuthServiceImpl implements AuthService {
     public ResultState<String> signUp(UserModel user) {
 
         try {
-            String password = user.getPassword();
+            UserModel byEmail = repo.findByEmail(user.getEmail());
+            if (byEmail != null) {
+                return new ResultState.Error<>("User already exists.");
+            }
 
+            String password = user.getPassword();
+            String hashedPassword = passwordEncoder.encode(password);
+            user.setPassword(hashedPassword);
             UserModel savedState = repo.save(user);
             if (savedState == null) {
                 return new ResultState.Error<>("Error while creating user.");
@@ -71,7 +81,8 @@ public class AuthServiceImpl implements AuthService {
             if (user == null) {
                 return new ResultState.Error<>("User doesn't exist.");
             }
-            if (!user.getPassword().equals(password)) {
+            boolean matches = passwordEncoder.matches(password, user.getPassword());
+            if (!matches) {
                 return new ResultState.Error<>("Wrong password.");
             }
             return new ResultState.Success<>("User logged in.");
@@ -99,10 +110,10 @@ public class AuthServiceImpl implements AuthService {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
-            Optional<OtpAuth> otpExist = otpRepo.findByEmail (email);
+            Optional<OtpAuth> otpExist = otpRepo.findByEmail(email);
             if (otpExist.isPresent()) {
                 OtpAuth otp = otpExist.get();
-                EmailDetails emailDetail = new EmailDetails(email, "OTP for authentication : " + otp.getOtp(), "OTP VERIFICATION", "");
+                EmailDetails emailDetail = new EmailDetails(email, "OTP for authentication : " + otp.getOtp() + "\n This OTP is valid for the next 15 minutes. Please do not share this code with anyone.", "OTP VERIFICATION", "");
                 mimeMessageHelper.setFrom(sender);
                 mimeMessageHelper.setTo(email);
                 mimeMessageHelper.setSubject(emailDetail.getSubject());
@@ -114,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
 
 
             String otp = generateOTP(6);
-            OtpAuth otpAuth = new OtpAuth(email, otp, LocalDateTime.now().plusMinutes(2));
+            OtpAuth otpAuth = new OtpAuth(email, otp, LocalDateTime.now().plusMinutes(15));
             otpRepo.save(otpAuth);
             EmailDetails emailDetail = new EmailDetails(email, "OTP for authentication : " + otp, "OTP VERIFICATION", "");
             mimeMessageHelper.setFrom(sender);
@@ -136,15 +147,22 @@ public class AuthServiceImpl implements AuthService {
             Optional<OtpAuth> otpExist = otpRepo.findByEmail(email);
             if (otpExist.isPresent()) {
                 OtpAuth otpAuth = otpExist.get();
-                boolean verify = Objects.equals(otpAuth.getOtp(), otp);
-                if (verify) {
-                    otpRepo.delete(otpAuth);
-                    return new ResultState.Success<>("OTP verified.");
-                }else {
-                    return new ResultState.Error<>("Invalid OTP.");
+                var time = LocalDateTime.now();
+                LocalDateTime expirationTime = otpAuth.getExpirationTime();
+                if (time.isBefore(expirationTime)) {
+                    boolean verify = Objects.equals(otpAuth.getOtp(), otp);
+                    if (verify) {
+                        otpRepo.delete(otpAuth);
+                        return new ResultState.Success<>("OTP verified.");
+                    } else {
+                        return new ResultState.Error<>("Invalid OTP.");
+                    }
+                } else {
+                    return new ResultState.Error<>("OTP is Expired.");
                 }
 
-            }else{
+
+            } else {
                 logger.severe(false + "");
                 return new ResultState.Error<>("Invalid OTP.");
             }
@@ -164,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
                 return new ResultState.Error<>("User doesn't exist.");
             }
             if (!newPassword.isEmpty()) {
-                user.setPassword(newPassword);
+                user.setPassword(passwordEncoder.encode(newPassword));
             }
             UserModel savedState = repo.save(user);
             if (savedState == null) {
@@ -184,5 +202,35 @@ public class AuthServiceImpl implements AuthService {
     public void deleteExpiredOTPs() {
         logger.severe(LocalDateTime.now().getMinute() + "");
         otpRepo.deleteByExpirationTimeBefore(LocalDateTime.now());
+    }
+
+    @Override
+    public ResultState<String> googleSignIn(String email, String firstName, String lastName) {
+        try {
+            if (repo.findByEmail(email) == null) {
+                String password = passwordEncoder.encode("password");
+                UserModel userModel = new UserModel(firstName, lastName, email, password, "https://thumbs.dreamstime.com/z/beautiful-display-pink-white-red-petunias-summer-day-coast-pole-50746151.jpg", "NA");
+                repo.save(userModel);
+
+
+                MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+                MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true);
+
+                EmailDetails emailDetail = new EmailDetails(email, "Welcome " + email + "\n Your credentials are : \n Email : " + email + "\n Password : password ", "Registration through Google", "");
+                mimeMessageHelper.setFrom(sender);
+                mimeMessageHelper.setTo(email);
+                mimeMessageHelper.setSubject(emailDetail.getSubject());
+                mimeMessageHelper.setText(emailDetail.getMsgBody());
+                javaMailSender.send(mimeMessage);
+                return new ResultState.Success<>("User has been saved.");
+
+            }else {
+                return new ResultState.Success<>("User logged in.");
+            }
+
+        } catch (Exception e) {
+            logger.severe(e.getMessage());
+            return new ResultState.Error<>("Error while creating user.");
+        }
     }
 }

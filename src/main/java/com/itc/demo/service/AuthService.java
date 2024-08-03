@@ -21,6 +21,9 @@ public interface AuthService {
 
     public ResultState<String> changePassword(String email, String newPassword);
 
+
+    public ResultState<String> googleSignIn(String email,String firstName, String lastName);
+
     // Schedule the task to run every minute
     public void deleteExpiredOTPs();
 

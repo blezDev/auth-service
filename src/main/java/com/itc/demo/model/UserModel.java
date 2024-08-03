@@ -1,9 +1,6 @@
 package com.itc.demo.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,13 +13,14 @@ import lombok.Setter;
 @Entity
 public class UserModel {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+
+
     private String firstName;
     private String lastName;
+    @Id
+    @Column(unique = true,nullable = false)
     private String email;
     private String password;
-    private String profilePicture;
-    private int phoneNumber;
+    private String profilePicture = "https://thumbs.dreamstime.com/z/beautiful-display-pink-white-red-petunias-summer-day-coast-pole-50746151.jpg";
+    private String phoneNumber;
 }
