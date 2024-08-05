@@ -57,6 +57,12 @@
             <version>10.4.1</version>
         </dependency>-->
         <!-- https://mvnrepository.com/artifact/com.google.firebase/firebase-admin -->
+
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.2</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -80,7 +86,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <image>
+                        <name>auth-service</name>
+                    </image>
+                </configuration>
             </plugin>
+
+
         </plugins>
     </build>
 
