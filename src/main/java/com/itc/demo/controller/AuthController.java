@@ -1,9 +1,7 @@
 package com.itc.demo.controller;
 
-import com.itc.demo.model.GoogleModel;
-import com.itc.demo.model.LoginModel;
+import com.itc.demo.model.*;
 import com.itc.demo.model.ResponseBody;
-import com.itc.demo.model.UserModel;
 import com.itc.demo.service.AuthService;
 import com.itc.demo.utils.ResultState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +33,8 @@ public class AuthController {
     }
 
     @PostMapping("/verify/{email}")
-    public ResponseEntity<ResponseBody> generateOTP(@PathVariable String email, @RequestBody String otp) {
-        ResultState<String> resultState = authService.verifyEmailOTP(email,otp);
+    public ResponseEntity<ResponseBody> generateOTP(@PathVariable String email, @RequestBody OTPModel otp) {
+        ResultState<String> resultState = authService.verifyEmailOTP(email,otp.getOtp());
 
         if (resultState instanceof ResultState.Success<String> success) {
             return ResponseEntity.ok(new ResponseBody(success.getData()));
