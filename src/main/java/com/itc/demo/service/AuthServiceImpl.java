@@ -75,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
 
     //TODO("Implement password encoder and decoder")
     @Override
-    public ResultState<String> login(String email, String password) {
+    public ResultState<UserModel> login(String email, String password) {
         try {
             UserModel user = repo.findByEmail(email);
             if (user == null) {
@@ -85,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
             if (!matches) {
                 return new ResultState.Error<>("Wrong password.");
             }
-            return new ResultState.Success<>("User logged in.");
+            return new ResultState.Success<>(user);
         } catch (Exception e) {
             logger.severe(e.getMessage());
             return new ResultState.Error<>("Error while creating user.");

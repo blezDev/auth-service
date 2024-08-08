@@ -16,7 +16,7 @@ public class UserModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private String userID = null;
+    private Integer userID = null;
     private String firstName;
     private String lastName;
 

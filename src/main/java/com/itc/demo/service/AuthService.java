@@ -10,7 +10,7 @@ public interface AuthService {
 
     public ResultState<String> signUp(UserModel user);
 
-    public ResultState<String> login(String email, String password);
+    public ResultState<UserModel> login(String email, String password);
 
 
     public ResultState<String> generateOTPThroughEmail(String email);

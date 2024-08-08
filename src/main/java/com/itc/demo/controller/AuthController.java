@@ -46,13 +46,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseBody> login(@RequestBody LoginModel loginModel) {
-        ResultState<String> loginState = authService.login(loginModel.getEmail(), loginModel.getPassword());
-        if (loginState instanceof ResultState.Success<String> success) {
-            return ResponseEntity.ok(new ResponseBody(success.getData()));
+    public ResponseEntity<AuthResponseBody> login(@RequestBody LoginModel loginModel) {
+        ResultState<UserModel> loginState = authService.login(loginModel.getEmail(), loginModel.getPassword());
+        if (loginState instanceof ResultState.Success<?> success) {
+            UserModel user = loginState.getData();
+
+            return ResponseEntity.ok( new AuthResponseBody("User Logged in.", user.getUserID(), user.getEmail(), user.getFirstName(), user.getLastName()));
         }else {
-            ResultState.Error<String> error = (ResultState.Error<String>) loginState;
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseBody(error.getMessage()));
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body( new AuthResponseBody(loginState.getMessage(),null,null,null,null));
         }
     }
 
