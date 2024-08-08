@@ -30,13 +30,17 @@ spring:
 eureka:
   instance:
     lease-renewal-interval-in-seconds: 0
+    hostname: auth-service-production-9d14.up.railway.app
+    metadata-map:
+      publicUrl: https://auth-service-production-9d14.up.railway.app
   client:
     service-url:
       defaultZone : https://eurekaregistry-production.up.railway.app/eureka
 
+
 management:
   endpoints:
     web:
-      base-path : /auth
+      base-path : /
       exposure:
         include: "*"
