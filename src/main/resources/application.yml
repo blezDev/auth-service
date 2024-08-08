@@ -27,6 +27,16 @@ spring:
           starttls :
             enable : true
 
+eureka:
+  instance:
+    lease-renewal-interval-in-seconds: 0
+  client:
+    service-url:
+      defaultZone : https://eurekaregistry-production.up.railway.app/eureka
 
-server:
-  port: 8081
+management:
+  endpoints:
+    web:
+      base-path : /auth
+      exposure:
+        include: "*"

@@ -4,16 +4,19 @@ import com.itc.demo.model.*;
 import com.itc.demo.model.ResponseBody;
 import com.itc.demo.service.AuthService;
 import com.itc.demo.utils.ResultState;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
 @RequestMapping("/auth")
-public class AuthController {
+public class AuthController implements ErrorController {
 
     @Autowired
     private AuthService authService;
@@ -31,6 +34,7 @@ public class AuthController {
         }
 
     }
+
 
     @PostMapping("/verify/{email}")
     public ResponseEntity<ResponseBody> generateOTP(@PathVariable String email, @RequestBody OTPModel otp) {
@@ -91,6 +95,20 @@ public class AuthController {
             ResultState.Error<String> error = (ResultState.Error<String>) loginState;
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseBody(error.getMessage()));
         }
+    }
+
+    @GetMapping("/error")
+    public String handleError(HttpServletRequest request, Map<String, Object> model) {
+        // You can retrieve the error status code and message here
+        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+        String errorMessage = (String) request.getAttribute("javax.servlet.error.message");
+
+        // Add error details to the model
+        model.put("statusCode", statusCode);
+        model.put("errorMessage", errorMessage);
+
+        // Return the name of the view (HTML page) to render
+        return "error";
     }
 
 }
