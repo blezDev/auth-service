@@ -207,10 +207,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResultState<String> googleSignIn(String email, String firstName, String lastName) {
         try {
-            if (repo.findByEmail(email) == null) {
+            UserModel user = repo.findByEmail(email);
+            if (user== null) {
                 String password = passwordEncoder.encode("password");
                 UserModel userModel = new UserModel(firstName, lastName, email, password, "https://thumbs.dreamstime.com/z/beautiful-display-pink-white-red-petunias-summer-day-coast-pole-50746151.jpg", "NA");
-                repo.save(userModel);
+                UserModel userSaved = repo.save(userModel);
 
 
                 MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -222,10 +223,10 @@ public class AuthServiceImpl implements AuthService {
                 mimeMessageHelper.setSubject(emailDetail.getSubject());
                 mimeMessageHelper.setText(emailDetail.getMsgBody());
                 javaMailSender.send(mimeMessage);
-                return new ResultState.Success<>("User has been saved.");
+                return new ResultState.Success<>(userSaved.getUserID().toString());
 
             }else {
-                return new ResultState.Success<>("User logged in.");
+                return new ResultState.Success<>(user.getUserID().toString());
             }
 
         } catch (Exception e) {

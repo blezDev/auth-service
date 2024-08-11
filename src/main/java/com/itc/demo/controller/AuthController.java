@@ -90,7 +90,7 @@ public class AuthController implements ErrorController {
     public ResponseEntity<ResponseBody> googleSignUp(@RequestBody GoogleModel googleModel){
         ResultState<String> loginState = authService.googleSignIn(googleModel.getEmail(),googleModel.getFirstName(),googleModel.getLastName());
         if (loginState instanceof ResultState.Success<String> success) {
-            return ResponseEntity.ok(new ResponseBody(success.getData()));
+            return ResponseEntity.ok(new ResponseBody(loginState.getData()));
         }else {
             ResultState.Error<String> error = (ResultState.Error<String>) loginState;
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResponseBody(error.getMessage()));
