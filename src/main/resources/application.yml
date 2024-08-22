@@ -14,8 +14,8 @@ spring:
   mail:
     port: 587
     host: smtp.gmail.com
-    username: "gietuallinone@gmail.com"
-    password: "imdu znnk gsuy mxid"
+    username: "Enter your email"
+    password: "Password generated Key"
 
     properties:
       "[mail.smtp.connectiontimeout]": 5000
