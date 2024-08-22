@@ -23,12 +23,7 @@ import java.util.logging.Logger;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-    /*
 
-        public static final String ACCOUNT_SID = "ACec163fd5030fc99bb60963d9a17fc675";
-        public static final String AUTH_TOKEN = "fb060c5d9f94dc05c30d47e060d8c0c7";
-
-    */
     @Autowired
     private JavaMailSender javaMailSender;
 
